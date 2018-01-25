@@ -43,7 +43,7 @@ Month        | Yes        | 1-12 or JAN-DEC | * / , -
 Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?
 ```
 
-(For this con table, credits go to [godoc](https://godoc.org/github.com/robfig/cron))
+(For this cron table, credits go to [godoc](https://godoc.org/github.com/robfig/cron))
 
 Finally, you can get a list of your current volumes backing up:
 
