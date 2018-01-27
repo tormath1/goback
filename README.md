@@ -19,7 +19,7 @@ local               data_example_2
 Let's suppose, I want to save `data_example_1` on `/mnt/path`, I will run this command:
 
 ```shell
-awesome-guy@data-instance-001:~$ goback save data_example_1 to /mnt/path
+awesome-guy@data-instance-001:~$ goback save data_example_1 /mnt/path
 ```
 
 Pretty simple isn't it ?
@@ -27,7 +27,7 @@ Pretty simple isn't it ?
 Now, I want to save `data_example_1` each thirty minutes:
 
 ```shell
-awesome-guy@data-instance-001:~$ goback save data_example_1 to /mnt/path each "0 30 * * * *"
+awesome-guy@data-instance-001:~$ goback save data_example_1 /mnt/path each "0 30 * * * *"
 ```
 
 Following this cron table:
