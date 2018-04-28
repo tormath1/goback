@@ -26,6 +26,8 @@ func main() {
 	switch args[0] {
 	case "save":
 		saveVolume(manager, args[1:]...)
+	case "schedule":
+		scheduleVolume(manager, args[1:]...)
 	default:
 		log.Println("list of commands: \nsave <src> <dst>")
 	}
@@ -40,5 +42,17 @@ func saveVolume(manager pb.ManagerClient, args ...string) error {
 	if err != nil {
 		log.Fatalf("unable to save volume: %v", err)
 	}
+	return err
+}
+
+func scheduleVolume(manager pb.ManagerClient, args ...string) error {
+	log.Printf("schedule %s on %s with: %s", args[0], args[1], args[2])
+	_, err := manager.ScheduleSaving(context.Background(), &pb.ScheduleSavingRequest{
+		Schedule: args[2],
+		Volume: &pb.SaveVolumeRequest{
+			VolumeName:  args[0],
+			Destination: args[1],
+		},
+	})
 	return err
 }
