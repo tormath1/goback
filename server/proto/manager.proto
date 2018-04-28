@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package server;
+
+service Manager {
+    rpc SaveVolume (SaveVolumeRequest) returns (Error) {};
+}
+
+message SaveVolumeRequest {
+    string volumeName = 1;
+    string destination = 2;
+}
+
+message Error {
+    string message = 1;
+}
