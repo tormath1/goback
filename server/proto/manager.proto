@@ -5,7 +5,18 @@ package server;
 service Manager {
     rpc SaveVolume (SaveVolumeRequest) returns (Error) {};
     rpc ScheduleSaving (ScheduleSavingRequest) returns (Error) {};
+    rpc ListEntries (Empty) returns (EntriesList) {};
 }
+
+message EntriesList {
+    repeated Entry entries = 1;
+}
+
+message Entry {
+    string next = 1;
+}
+
+message Empty {}
 
 message ScheduleSavingRequest {
     string schedule = 1;

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -27,14 +28,22 @@ func main() {
 	case "save":
 		saveVolume(manager, args[1:]...)
 	case "schedule":
-		scheduleVolume(manager, args[1:]...)
+		schedule(manager, args[1:]...)
 	default:
 		log.Println("list of commands: \nsave <src> <dst>")
 	}
 }
 
-func saveVolume(manager pb.ManagerClient, args ...string) error {
-	log.Printf("save: %s on %s", args[0], args[1])
+func schedule(manager pb.ManagerClient, args ...string) {
+	switch args[0] {
+	case "list":
+		entriesList(manager)
+	default:
+		scheduleVolume(manager, args...)
+	}
+}
+
+func saveVolume(manager pb.ManagerClient, args ...string) {
 	_, err := manager.SaveVolume(context.Background(), &pb.SaveVolumeRequest{
 		VolumeName:  args[0],
 		Destination: args[1],
@@ -42,11 +51,9 @@ func saveVolume(manager pb.ManagerClient, args ...string) error {
 	if err != nil {
 		log.Fatalf("unable to save volume: %v", err)
 	}
-	return err
 }
 
-func scheduleVolume(manager pb.ManagerClient, args ...string) error {
-	log.Printf("schedule %s on %s with: %s", args[0], args[1], args[2])
+func scheduleVolume(manager pb.ManagerClient, args ...string) {
 	_, err := manager.ScheduleSaving(context.Background(), &pb.ScheduleSavingRequest{
 		Schedule: args[2],
 		Volume: &pb.SaveVolumeRequest{
@@ -54,5 +61,17 @@ func scheduleVolume(manager pb.ManagerClient, args ...string) error {
 			Destination: args[1],
 		},
 	})
-	return err
+	if err != nil {
+		log.Fatalf("unable to get cron entries: %v", err)
+	}
+}
+
+func entriesList(manager pb.ManagerClient) {
+	entries, err := manager.ListEntries(context.Background(), &pb.Empty{})
+	if err != nil {
+		log.Fatalf("unable to get cron entries: %v", err)
+	}
+	for _, entry := range entries.Entries {
+		fmt.Println(entry)
+	}
 }
