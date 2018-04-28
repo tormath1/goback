@@ -2,6 +2,9 @@
 
 Keep an eye on your Docker volumes !
 
+## Todo
+
+  * [ ] use cobra instead of shenanigans
 
 ## How to backup your volumes
 
