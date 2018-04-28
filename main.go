@@ -2,54 +2,43 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
-	"github.com/otiai10/copy"
+	pb "github.com/tormath1/goback/server/proto"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	docker, err := client.NewEnvClient()
-	if err != nil {
-		log.Fatalf("unable to connect to docker daemon: %v", err)
-	}
-
-	ctx := context.Background()
 	args := os.Args[1:]
 	if len(args) < 1 {
 		log.Fatal("usage: ./goback <command> <arguments>")
 	}
 
+	client, err := grpc.Dial("localhost:12800", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("unable to connect to localhost:12800: %v", err)
+	}
+	defer client.Close()
+
+	manager := pb.NewManagerClient(client)
+
 	switch args[0] {
 	case "save":
-		save(ctx, docker, args[1:]...)
+		saveVolume(manager, args[1:]...)
 	default:
 		log.Println("list of commands: \nsave <src> <dst>")
 	}
 }
 
-func save(ctx context.Context, cli *client.Client, arguments ...string) {
-	if len(arguments) < 2 {
-		log.Fatalf("usage: ./goback save <src> <dst>")
-	}
-
-	src := arguments[0]
-	dst := arguments[1]
-
-	log.Printf("save %s to %s", src, dst)
-	volumes, err := cli.VolumeList(ctx, filters.Args{})
+func saveVolume(manager pb.ManagerClient, args ...string) error {
+	log.Printf("save: %s on %s", args[0], args[1])
+	_, err := manager.SaveVolume(context.Background(), &pb.SaveVolumeRequest{
+		VolumeName:  args[0],
+		Destination: args[1],
+	})
 	if err != nil {
-		log.Fatalf("unable to list volumes: %v", err)
+		log.Fatalf("unable to save volume: %v", err)
 	}
-
-	for _, volume := range volumes.Volumes {
-		if volume.Name == src {
-			if err = copy.Copy(volume.Mountpoint, fmt.Sprintf("%s/_data", dst)); err != nil {
-				log.Fatalf("unable to copy volume: %s on %s: %v", volume.Name, dst, err)
-			}
-		}
-	}
+	return err
 }
