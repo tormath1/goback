@@ -52,5 +52,5 @@ Finally, you can get a list of your current volumes backing up:
 
 ```shell
 awesome-guy@data-instance-001:~$ goback schedule list
-next:"0001-01-01 00:00:00 +0000 UTC"
+volume:"data_example_1" cron:"0 30 * * * *"
 ```
