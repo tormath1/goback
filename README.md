@@ -27,7 +27,7 @@ Pretty simple isn't it ?
 Now, I want to save `data_example_1` each thirty minutes:
 
 ```shell
-awesome-guy@data-instance-001:~$ goback save data_example_1 /mnt/path each "0 30 * * * *"
+awesome-guy@data-instance-001:~$ goback schedule data_example_1 /mnt/path  "0 30 * * * *"
 ```
 
 Following this cron table:
@@ -48,7 +48,6 @@ Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?
 Finally, you can get a list of your current volumes backing up:
 
 ```shell
-awesome-guy@data-instance-001:~$ goback volume ls
-DRIVER              VOLUME NAME
-/mnt/path           data_example_1
+awesome-guy@data-instance-001:~$ goback schedule list
+next:"0001-01-01 00:00:00 +0000 UTC"
 ```
