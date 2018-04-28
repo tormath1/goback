@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/otiai10/copy"
 )
 
 func main() {
@@ -44,6 +46,10 @@ func save(ctx context.Context, cli *client.Client, arguments ...string) {
 	}
 
 	for _, volume := range volumes.Volumes {
-		log.Print(volume.Mountpoint)
+		if volume.Name == src {
+			if err = copy.Copy(volume.Mountpoint, fmt.Sprintf("%s/_data", dst)); err != nil {
+				log.Fatalf("unable to copy volume: %s on %s: %v", volume.Name, dst, err)
+			}
+		}
 	}
 }
