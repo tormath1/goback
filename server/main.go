@@ -18,6 +18,7 @@ import (
 
 var docker *client.Client
 var chronoTable *cron.Cron
+var entries map[string]string
 
 func main() {
 	docker, err := client.NewEnvClient()
@@ -33,6 +34,7 @@ func main() {
 	pb.RegisterManagerServer(grpcServer, &server{docker})
 
 	chronoTable = cron.New()
+	entries = make(map[string]string)
 	log.Fatal(grpcServer.Serve(listener))
 }
 
@@ -40,9 +42,8 @@ type server struct{ docker *client.Client }
 
 func (s *server) ListEntries(ctx context.Context, in *pb.Empty) (*pb.EntriesList, error) {
 	out := &pb.EntriesList{}
-	entries := chronoTable.Entries()
-	for _, entry := range entries {
-		out.Entries = append(out.Entries, &pb.Entry{Next: entry.Next.String()})
+	for key, value := range entries {
+		out.Entries = append(out.Entries, &pb.Entry{Volume: key, Cron: value})
 	}
 
 	return out, nil
@@ -67,6 +68,7 @@ func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingReques
 	if err != nil {
 		log.Printf("unable to add entry to chrono table: %v", err)
 	}
+	entries[in.Volume.VolumeName] = in.Schedule
 	return &pb.Empty{}, err
 }
 
