@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -83,9 +84,11 @@ func save(src, dst string, cli *client.Client) error {
 		return err
 	}
 
+	timestamp := time.Now().Format(time.RFC3339)
+
 	for _, volume := range volumes.Volumes {
 		if volume.Name == src {
-			if err = copy.Copy(volume.Mountpoint, fmt.Sprintf("%s/_data", dst)); err != nil {
+			if err = copy.Copy(volume.Mountpoint, fmt.Sprintf("%s/%s-%s/_data", dst, volume.Name, timestamp)); err != nil {
 				return err
 			}
 		}
