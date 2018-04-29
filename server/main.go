@@ -48,8 +48,7 @@ func (s *server) ListEntries(ctx context.Context, in *pb.Empty) (*pb.EntriesList
 	return out, nil
 }
 
-func (s *server) SaveVolume(ctx context.Context, in *pb.SaveVolumeRequest) (*pb.Error, error) {
-	out := &pb.Error{Code: 200}
+func (s *server) SaveVolume(ctx context.Context, in *pb.SaveVolumeRequest) (*pb.Empty, error) {
 
 	src := in.VolumeName
 	dst := in.Destination
@@ -57,24 +56,18 @@ func (s *server) SaveVolume(ctx context.Context, in *pb.SaveVolumeRequest) (*pb.
 	err := save(src, dst, s.docker)
 	if err != nil {
 		log.Printf("unable to save volume: %v", err)
-		out.Code = 500
-		out.Message = err.Error()
 	}
-	return out, err
+	return &pb.Empty{}, err
 }
 
-func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingRequest) (*pb.Error, error) {
-
-	out := &pb.Error{Code: 200}
+func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingRequest) (*pb.Empty, error) {
 
 	job := func() { save(in.Volume.VolumeName, in.Volume.Destination, docker) }
 	err := chronoTable.AddFunc(in.Schedule, job)
 	if err != nil {
 		log.Printf("unable to add entry to chrono table: %v", err)
-		out.Code = 500
-		out.Message = err.Error()
 	}
-	return out, err
+	return &pb.Empty{}, err
 }
 
 func save(src, dst string, cli *client.Client) error {

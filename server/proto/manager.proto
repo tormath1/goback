@@ -3,8 +3,8 @@ syntax = "proto3";
 package server;
 
 service Manager {
-    rpc SaveVolume (SaveVolumeRequest) returns (Error) {};
-    rpc ScheduleSaving (ScheduleSavingRequest) returns (Error) {};
+    rpc SaveVolume (SaveVolumeRequest) returns (Empty) {};
+    rpc ScheduleSaving (ScheduleSavingRequest) returns (Empty) {};
     rpc ListEntries (Empty) returns (EntriesList) {};
 }
 
@@ -26,9 +26,4 @@ message ScheduleSavingRequest {
 message SaveVolumeRequest {
     string volumeName = 1;
     string destination = 2;
-}
-
-message Error {
-    int64 code = 1;
-    string message = 2;
 }
