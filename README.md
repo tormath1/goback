@@ -5,6 +5,7 @@ Keep an eye on your Docker volumes !
 ## Todo
 
   * [ ] use cobra instead of shenanigans
+  * [ ] create a file / sqlite in order to keep current cron entries
 
 ## How to backup your volumes
 
