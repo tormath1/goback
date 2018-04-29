@@ -7,6 +7,14 @@ Keep an eye on your Docker volumes !
   * [ ] use cobra instead of shenanigans
   * [ ] create a file / sqlite in order to keep current cron entries
 
+## Getting started
+
+Download the latest [release](https://github.com/tormath1/goback/releases): `server` is the API server and `goback` is the command line tool. 
+
+As `server` will manage your volumes, you'll need to start it with `sudo` command. Once your server up, you'll need to move `goback` in a `$PATH` location like `/usr/local/bin`.
+
+Now you are ready to backup your volumes ! 
+
 ## How to backup your volumes
 
 First, you need to identify which volume (id or name) you want to backup.
@@ -55,3 +63,7 @@ Finally, you can get a list of your current volumes backing up:
 awesome-guy@data-instance-001:~$ goback schedule list
 volume:"data_example_1" cron:"0 30 * * * *"
 ```
+
+## gRPC support
+
+Server is designed with gRPC APIs, so you can find proto file and generate your client, to use goback directly in your workflow. 
