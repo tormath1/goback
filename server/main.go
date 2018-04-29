@@ -64,7 +64,11 @@ func (s *server) SaveVolume(ctx context.Context, in *pb.SaveVolumeRequest) (*pb.
 func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingRequest) (*pb.Empty, error) {
 
 	job := func() { save(in.Volume.VolumeName, in.Volume.Destination, docker) }
-	err := chronoTable.AddFunc(in.Schedule, job)
+	_, err := getMountpoint(in.Volume.VolumeName, s.docker)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	err = chronoTable.AddFunc(in.Schedule, job)
 	if err != nil {
 		log.Printf("unable to add entry to chrono table: %v", err)
 	}
@@ -74,19 +78,27 @@ func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingReques
 
 func save(src, dst string, cli *client.Client) error {
 
-	volumes, err := cli.VolumeList(context.Background(), filters.Args{})
+	mountpoint, err := getMountpoint(src, cli)
 	if err != nil {
 		return err
 	}
-
 	timestamp := time.Now().Format(time.RFC3339)
 
-	for _, volume := range volumes.Volumes {
-		if volume.Name == src {
-			if err = copy.Copy(volume.Mountpoint, fmt.Sprintf("%s/%s-%s/_data", dst, volume.Name, timestamp)); err != nil {
-				return err
-			}
-		}
+	if err = copy.Copy(mountpoint, fmt.Sprintf("%s/%s-%s/_data", dst, src, timestamp)); err != nil {
+		return err
 	}
 	return err
+}
+
+func getMountpoint(src string, cli *client.Client) (string, error) {
+	volumes, err := cli.VolumeList(context.Background(), filters.Args{})
+	if err != nil {
+		return "", err
+	}
+	for _, volume := range volumes.Volumes {
+		if volume.Name == src {
+			return volume.Mountpoint, nil
+		}
+	}
+	return "", fmt.Errorf("volume %s does not exist", src)
 }
