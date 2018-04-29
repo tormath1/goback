@@ -40,9 +40,7 @@ type server struct{ docker *client.Client }
 func (s *server) ListEntries(ctx context.Context, in *pb.Empty) (*pb.EntriesList, error) {
 	out := &pb.EntriesList{}
 	entries := chronoTable.Entries()
-	log.Print(entries[0])
 	for _, entry := range entries {
-		log.Println("coucou")
 		out.Entries = append(out.Entries, &pb.Entry{Next: entry.Next.String()})
 	}
 
@@ -75,7 +73,6 @@ func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingReques
 		out.Code = 500
 		out.Message = err.Error()
 	}
-	log.Print(chronoTable.Entries()[0])
 	return out, err
 }
 
