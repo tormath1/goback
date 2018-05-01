@@ -46,6 +46,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&certFile, "cert-file", "", "", "absolute path to a certificat file")
 	rootCmd.Flags().StringVarP(&keyFile, "key-file", "", "", "absolute path to a certificat key file")
 	rootCmd.Flags().StringVarP(&rootCA, "root-ca", "", "", "absolute path to root authority (*.pem / *.crt) file")
+	prometheus.Register(nbCron)
 }
 
 func Execute() {
