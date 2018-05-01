@@ -5,20 +5,32 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"time"
 
-	"google.golang.org/grpc"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/otiai10/copy"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/robfig/cron"
 	pb "github.com/tormath1/goback/server/proto"
+	"google.golang.org/grpc"
 )
 
 var docker *client.Client
 var chronoTable *cron.Cron
 var entries map[string]string
+
+var nbCron = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "number_cron_job",
+	Help: "Number of cron job",
+})
+
+func init() {
+	prometheus.Register(nbCron)
+}
 
 func main() {
 	docker, err := client.NewEnvClient()
@@ -29,6 +41,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to listen on :12800: %v", err)
 	}
+
+	http.Handle("/metrics", promhttp.Handler())
+	go http.ListenAndServe(":8080", nil)
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterManagerServer(grpcServer, &server{docker})
@@ -77,6 +92,9 @@ func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingReques
 	err = chronoTable.AddFunc(in.Schedule, job)
 	if err != nil {
 		log.Printf("unable to add entry to chrono table: %v", err)
+	}
+	if _, ok := entries[in.Volume.VolumeName]; !ok {
+		nbCron.Inc()
 	}
 	entries[in.Volume.VolumeName] = in.Schedule
 	return &pb.Empty{}, err
