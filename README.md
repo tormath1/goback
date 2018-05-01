@@ -5,6 +5,7 @@ Keep an eye on your Docker volumes !
 ## Todo
 
   * [ ] create a file / sqlite in order to keep current cron entries
+  * [ ] remove a cron job, waiting for next release of cron lib
 
 ## Getting started
 
@@ -66,3 +67,8 @@ volume:"data_example_1" cron:"0 30 * * * *"
 ## gRPC support
 
 Server is designed with gRPC APIs, so you can find proto file and generate your client, to use goback directly in your workflow. 
+
+## Metrics
+
+List of Prometheus metrics:
+  * Counter `number_cron_job`: Number of cron job
