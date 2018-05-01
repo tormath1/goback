@@ -17,6 +17,32 @@ Now you are ready to backup your volumes !
 
 ## How to backup your volumes
 
+Before starting with the CLI, you need to run the server on your docker host. 
+
+You can start it without authentication or with TLS authentication: 
+
+```
+$ sudo ./server
+```
+
+or 
+
+```
+$ sudo ./server \
+--cert-file=/path/to/cert.crt \
+--key-file=/path/to/key.key
+```
+
+If you run self signed certificates, you need to add your root authority: 
+
+```
+$ sudo ./server \
+--cert-file=/path/to/cert.crt \
+--key-file=/path/to/key.key \
+--root-ca=/path/to/root.crt 
+```
+
+
 First, you need to identify which volume (id or name) you want to backup.
 
 ```shell
