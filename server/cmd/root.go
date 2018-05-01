@@ -2,11 +2,16 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"time"
+
+	"google.golang.org/grpc/credentials"
 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
@@ -20,10 +25,11 @@ import (
 )
 
 var (
-	docker      *client.Client
-	chronoTable *cron.Cron
-	entries     map[string]string
-	rootCmd     = &cobra.Command{
+	docker                    *client.Client
+	chronoTable               *cron.Cron
+	entries                   map[string]string
+	certFile, keyFile, rootCA string
+	rootCmd                   = &cobra.Command{
 		Use:   "manager ",
 		Short: "main server to handle goback requests",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -35,6 +41,12 @@ var (
 		Help: "Number of cron job",
 	})
 )
+
+func init() {
+	rootCmd.Flags().StringVarP(&certFile, "cert-file", "", "", "absolute path to a certificat file")
+	rootCmd.Flags().StringVarP(&keyFile, "key-file", "", "", "absolute path to a certificat key file")
+	rootCmd.Flags().StringVarP(&rootCA, "root-ca", "", "", "absolute path to root authority (*.pem / *.crt) file")
+}
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
@@ -55,13 +67,43 @@ func serve(cmd *cobra.Command, args []string) {
 	http.Handle("/metrics", promhttp.Handler())
 	go http.ListenAndServe(":8080", nil)
 
-	grpcServer := grpc.NewServer()
+	var grpcServer *grpc.Server
+	if certFile != "" && keyFile != "" {
+		grpcServer = grpc.NewServer(getGrpcCreds())
+	}
+	grpcServer = grpc.NewServer()
 	pb.RegisterManagerServer(grpcServer, &server{docker})
 
 	chronoTable = cron.New()
 	chronoTable.Start()
 	entries = make(map[string]string)
 	log.Fatal(grpcServer.Serve(listener))
+}
+
+func getGrpcCreds() grpc.ServerOption {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		log.Fatalf("unable to load certificate: %v", err)
+	}
+	if rootCA != "" {
+		certPool := x509.NewCertPool()
+		ca, err := ioutil.ReadFile(rootCA)
+		if err != nil {
+			log.Fatalf("unable to load root authority: %v", err)
+		}
+		if ok := certPool.AppendCertsFromPEM(ca); !ok {
+			log.Fatalf("unable to append root authority to cert pool: %v", err)
+		}
+		return grpc.Creds(credentials.NewTLS(&tls.Config{
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			Certificates: []tls.Certificate{cert},
+			ClientCAs:    certPool,
+		}))
+	}
+	return grpc.Creds(credentials.NewTLS(&tls.Config{
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		Certificates: []tls.Certificate{cert},
+	}))
 }
 
 type server struct{ docker *client.Client }
