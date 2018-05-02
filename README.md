@@ -7,6 +7,7 @@ Keep an eye on your Docker volumes !
   * [ ] create a file / sqlite in order to keep current cron entries
   * [ ] remove a cron job, waiting for next release of cron lib
   * [ ] accept volume with id or id beginning
+  * [ ] check 
 
 ## Getting started
 
@@ -115,3 +116,4 @@ Server is designed with gRPC APIs, so you can find proto file and generate your 
 
 List of Prometheus metrics:
   * Counter `number_cron_job`: Number of cron job
+  * grpc metrics from: https://github.com/grpc-ecosystem/go-grpc-prometheus
