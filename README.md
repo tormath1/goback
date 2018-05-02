@@ -15,7 +15,7 @@ As `server` will manage your volumes, you'll need to start it with `sudo` comman
 
 Now you are ready to backup your volumes ! 
 
-## How to backup your volumes
+## How to setting up Goback
 
 Before starting with the CLI, you need to run the server on your docker host. 
 
@@ -42,6 +42,22 @@ $ sudo ./server \
 --root-ca=/path/to/root.crt 
 ```
 
+And with client, you need to provide a json config file, called `goback.json` like this one: 
+
+```json
+{
+    ...
+    "tls": {
+        "cert_file": "/path/to/client.local.tld.crt",
+        "key_file": "/path/to/client.local.tld.key",
+        "root_cert": "/path/to/rootCA.pem",
+        "server_name": "server.local.tld"
+    }
+    ...
+}
+```
+
+## Backup your volumes
 
 First, you need to identify which volume (id or name) you want to backup.
 
