@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-prometheus"
+
 	"google.golang.org/grpc/credentials"
 
 	"github.com/docker/docker/api/types/filters"
@@ -70,10 +72,19 @@ func serve(cmd *cobra.Command, args []string) {
 
 	var grpcServer *grpc.Server
 	if certFile != "" && keyFile != "" {
-		grpcServer = grpc.NewServer(getGrpcCreds())
+		grpcServer = grpc.NewServer(
+			getGrpcCreds(),
+			grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+			grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+		)
 	} else {
-		grpcServer = grpc.NewServer()
+		grpcServer = grpc.NewServer(
+			grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+			grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+		)
 	}
+
+	grpc_prometheus.Register(grpcServer)
 	pb.RegisterManagerServer(grpcServer, &server{docker})
 
 	chronoTable = cron.New()
