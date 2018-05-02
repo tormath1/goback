@@ -60,7 +60,7 @@ func serve(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("unable to connect to docker daemon: %v", err)
 	}
-	listener, err := net.Listen("tcp", ":12800")
+	listener, err := net.Listen("tcp", ":9090")
 	if err != nil {
 		log.Fatalf("unable to listen on :12800: %v", err)
 	}
@@ -71,8 +71,9 @@ func serve(cmd *cobra.Command, args []string) {
 	var grpcServer *grpc.Server
 	if certFile != "" && keyFile != "" {
 		grpcServer = grpc.NewServer(getGrpcCreds())
+	} else {
+		grpcServer = grpc.NewServer()
 	}
-	grpcServer = grpc.NewServer()
 	pb.RegisterManagerServer(grpcServer, &server{docker})
 
 	chronoTable = cron.New()
