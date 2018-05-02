@@ -6,6 +6,7 @@ Keep an eye on your Docker volumes !
 
   * [ ] create a file / sqlite in order to keep current cron entries
   * [ ] remove a cron job, waiting for next release of cron lib
+  * [ ] accept volume with id or id beginning
 
 ## Getting started
 
