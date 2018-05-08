@@ -121,6 +121,10 @@ func getGrpcCreds() grpc.ServerOption {
 
 type server struct{ docker *client.Client }
 
+func (s *server) Restore(ctx context.Context, in *pb.RestoreVolumeRequest) (*pb.Empty, error) {
+	return new(pb.Empty), fmt.Errorf("not implemented")
+}
+
 func (s *server) ListEntries(ctx context.Context, in *pb.Empty) (*pb.EntriesList, error) {
 	out := &pb.EntriesList{}
 	for key, value := range entries {
