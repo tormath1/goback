@@ -6,6 +6,11 @@ service Manager {
     rpc SaveVolume (SaveVolumeRequest) returns (Empty) {};
     rpc ScheduleSaving (ScheduleSavingRequest) returns (Empty) {};
     rpc ListEntries (Empty) returns (EntriesList) {};
+    rpc Restore(RestoreVolumeRequest) returns (Empty) {};
+}
+
+message RestoreVolumeRequest {
+    string volumeName = 1;
 }
 
 message EntriesList {
