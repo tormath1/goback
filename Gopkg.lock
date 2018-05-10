@@ -14,6 +14,12 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  name = "github.com/boltdb/bolt"
+  packages = ["."]
+  revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
+  version = "v1.3.1"
+
+[[projects]]
   name = "github.com/docker/distribution"
   packages = [
     "digest",
@@ -318,6 +324,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "855852aabd382a5b55b4016856294301cf7e34f16a7931446ee4c6a1fd75309e"
+  inputs-digest = "bf57b5006e33de60a903d2840465950ad0e470cbe50140173617a292e26af91c"
   solver-name = "gps-cdcl"
   solver-version = 1
