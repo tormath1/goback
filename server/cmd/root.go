@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 
 	"google.golang.org/grpc/credentials"
@@ -29,7 +30,6 @@ import (
 var (
 	docker                    *client.Client
 	chronoTable               *cron.Cron
-	entries                   map[string]string
 	certFile, keyFile, rootCA string
 	rootCmd                   = &cobra.Command{
 		Use:   "manager ",
@@ -42,6 +42,7 @@ var (
 		Name: "number_cron_job",
 		Help: "Number of cron job",
 	})
+	db *bolt.DB
 )
 
 func init() {
@@ -89,7 +90,19 @@ func serve(cmd *cobra.Command, args []string) {
 
 	chronoTable = cron.New()
 	chronoTable.Start()
-	entries = make(map[string]string)
+
+	db, err = bolt.Open("/tmp/backups.db", 0600, nil)
+	defer db.Close()
+	if err != nil {
+		log.Fatalf("unable to open database: %v", err)
+	}
+	if err = db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("entries"))
+		return err
+	}); err != nil {
+		log.Fatalf("unable to create bucket `entries`: %v", err)
+	}
+
 	log.Fatal(grpcServer.Serve(listener))
 }
 
@@ -127,10 +140,16 @@ func (s *server) Restore(ctx context.Context, in *pb.RestoreVolumeRequest) (*pb.
 
 func (s *server) ListEntries(ctx context.Context, in *pb.Empty) (*pb.EntriesList, error) {
 	out := &pb.EntriesList{}
-	for key, value := range entries {
-		out.Entries = append(out.Entries, &pb.Entry{Volume: key, Cron: value})
+	if err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("entries"))
+		return b.ForEach(func(key, value []byte) error {
+			out.Entries = append(out.Entries, &pb.Entry{Volume: string(key), Cron: string(value)})
+			return nil
+		})
+	}); err != nil {
+		log.Printf("unable to get entries: %v", err)
+		return new(pb.EntriesList), err
 	}
-
 	return out, nil
 }
 
@@ -162,10 +181,21 @@ func (s *server) ScheduleSaving(ctx context.Context, in *pb.ScheduleSavingReques
 	if err != nil {
 		log.Printf("unable to add entry to chrono table: %v", err)
 	}
-	if _, ok := entries[in.Volume.VolumeName]; !ok {
-		nbCron.Inc()
+
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("entries"))
+		cronEntry := b.Get([]byte(in.Volume.VolumeName))
+		if cronEntry == nil {
+			nbCron.Inc()
+		}
+		return nil
+	})
+	if err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("entries"))
+		return b.Put([]byte(in.Volume.VolumeName), []byte(in.Schedule))
+	}); err != nil {
+		log.Printf("unable to save cron in db: %v", err)
 	}
-	entries[in.Volume.VolumeName] = in.Schedule
 	return &pb.Empty{}, err
 }
 
